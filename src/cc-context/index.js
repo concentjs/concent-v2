@@ -7,7 +7,7 @@ import { waKey2uKeyMap, waKey2staticUKeyMap } from './wakey-ukey-map';
 import module2insCount from './modue-ins-count-map';
 import { refs, reducer, permanentDispatcherRef, _state, _prevState, moduleName2stateKeys } from './internal-vars';
 import lifecycle from './lifecycle';
-import { MODULE_GLOBAL, CATE_MODULE, FN_CU, FN_WATCH } from '../support/constant';
+import { MODULE_GLOBAL, MODULE_DEFAULT, CATE_MODULE, FN_CU, FN_WATCH } from '../support/constant';
 import * as util from '../support/util';
 import pickDepFns from '../core/base/pick-dep-fns';
 import findDepFnsToExecute from '../core/base/find-dep-fns-to-execute';
@@ -18,6 +18,11 @@ const { okeys, extractChangedState } = util;
 const getDispatcher = () => permanentDispatcherRef.value;
 
 const setStateByModule = (module, committedState, opts = {}) => {
+  // default 模块拒绝写入任何状态，避免多个实例使用私有状态时，default 模块的数据代入代入到实例状态中
+  if (MODULE_DEFAULT === module) {
+    return { hasDelta: false, deltaCommittedState: {} };
+  }
+
   const { ref = null, callInfo = {}, noSave = false, force } = opts;
   const moduleState = getState(module);
   const moduleComputedValue = _computedValues[module];

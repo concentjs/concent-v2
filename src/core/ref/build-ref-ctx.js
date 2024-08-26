@@ -1,6 +1,6 @@
 /** @typedef {import('../../types-inner').IRefCtx} ICtx */
 import {
-  MODULE_GLOBAL, ERR, CCSYNC_KEY,
+  MODULE_GLOBAL, MODULE_DEFAULT, ERR, CCSYNC_KEY,
   SET_STATE, SET_MODULE_STATE, FORCE_UPDATE, CC_HOOK, AUTO_VAL,
 } from '../../support/constant';
 import ccContext from '../../cc-context';
@@ -520,7 +520,7 @@ function buildRefCtx(ref, params, liteLevel = 5) {
   connectedModules.forEach((m) => {
     connectedComputed[m] = makeCuRefObContainer(ref, m, false);
   });
-  
+
   const moduleComputed = makeCuRefObContainer(ref, module);
   // 所有实例都自动连接上了global模块，这里可直接取connectedComputed已做好的结果
   const globalComputed = connectedComputed[MODULE_GLOBAL];
@@ -692,7 +692,9 @@ function buildRefCtx(ref, params, liteLevel = 5) {
   ref.setState = setState;
   ref.forceUpdate = forceUpdate;
 
-  bindInitStateHandler(ref, ctx, state, refStoredState, mstate, modStateKeys);
+  // 避免残留的 default state 干扰到新实例
+  const targetMstate = stateModule === MODULE_DEFAULT ? {} : mstate;
+  bindInitStateHandler(ref, ctx, state, refStoredState, targetMstate, modStateKeys);
   const dispatch = bindModApis(ref, ctx, stateModule, liteLevel, _setState);
   bindSyncApis(ref, ctx, liteLevel);
   bindEventApis(ctx, liteLevel, ccUniqueKey);
