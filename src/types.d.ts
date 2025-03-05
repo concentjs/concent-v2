@@ -1,7 +1,8 @@
+// @ts-nocheck
 import React, { Component, ReactNode, ComponentClass, FC } from 'react';
 
 /**
- * concent types.d.ts file v2.17.7
+ * concent types.d.ts file v2.21.10
  */
 declare const mvoid = '$$concent_void_module_624313307';
 
@@ -209,11 +210,14 @@ export interface ReducerCallerParams {
   delay: any,
 }
 
-type ReducerMethod<T, K extends keyof T> = T[K] extends IAnyFn ? (
-  payload: Parameters<T[K]>[0] extends undefined ? void : Parameters<T[K]>[0],
-  renderKeyOrOptions?: RenderKey | IDispatchOptions,
-  delay?: number,
-) => (ReturnType<T[K]> extends Promise<any> ? ReturnType<T[K]> : Promise<ReturnType<T[K]>>) : unknown;
+/**
+ * 允许用户定义 xxx(payload: number| null, state: State) 时， 可以 mr.xxx() 不传参数 ts 不报错
+ */
+type ReducerMethod<T, K extends keyof T> = T[K] extends (arg0: infer T, ...args: any[]) => infer R ? (
+  undefined extends T
+  ? (payload?: T, renderKeyOrOptions?: RenderKey | IDispatchOptions, delay?: number) => R
+  : (payload: T, renderKeyOrOptions?: RenderKey | IDispatchOptions, delay?: number) => R
+) : unknown;
 
 /**
  * 推导模块里来得mrc 调用的单个reducer方法的类型
@@ -708,7 +712,7 @@ type RefCtxInitState<ModuleState extends IAnyObj = IAnyObj, GlobalState extends 
     : never;
 
 // 该类型用于辅助用户外部某些地方直接求出 ins 类型
-export type RefCtxIns<ModuleState extends IAnyObj = IAnyObj, GlobalState extends IAnyObj = any, PrivState extends IAnyObj>
+export type RefCtxIns<ModuleState extends IAnyObj = IAnyObj, GlobalState extends IAnyObj = any, PrivState extends IAnyObj = any>
   = Extract<keyof PrivState, keyof ModuleState> extends never
   // you must make sure that there is no common keys between privState and moduleState
   ? {
